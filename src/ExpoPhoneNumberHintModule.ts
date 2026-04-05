@@ -1,12 +1,10 @@
-import { NativeModule, requireNativeModule } from 'expo';
+import { NativeModule, requireNativeModule } from "expo";
 
-import { ExpoPhoneNumberHintModuleEvents } from './ExpoPhoneNumberHint.types';
-
-declare class ExpoPhoneNumberHintModule extends NativeModule<ExpoPhoneNumberHintModuleEvents> {
-  PI: number;
-  hello(): string;
-  setValueAsync(value: string): Promise<void>;
+declare class ExpoPhoneNumberHintNativeModule extends NativeModule<Record<string, never>> {
+  isAvailable(): Promise<boolean>;
+  requestPhoneNumber(): Promise<string | null>;
 }
 
-// This call loads the native module object from the JSI.
-export default requireNativeModule<ExpoPhoneNumberHintModule>('ExpoPhoneNumberHint');
+export default requireNativeModule<ExpoPhoneNumberHintNativeModule>(
+  "ExpoPhoneNumberHint"
+);

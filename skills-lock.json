@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "expo-module": {
+      "source": "expo/skills",
+      "sourceType": "github",
+      "computedHash": "c1e47893d207b68c9a2a5b0de3f97042f82a65c0b3c3a33a7114029211b8e89b"
+    }
+  }
+}

@@ -1,8 +1,5 @@
 {
-  "platforms": ["apple", "android", "web"],
-  "apple": {
-    "modules": ["ExpoPhoneNumberHintModule"]
-  },
+  "platforms": ["android"],
   "android": {
     "modules": ["expo.modules.phonenumberhint.ExpoPhoneNumberHintModule"]
   }

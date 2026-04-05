@@ -1,9 +1,10 @@
 {
   "name": "expo-phone-number-hint",
   "version": "0.1.0",
-  "description": "My new module",
+  "description": "Expo module wrapping Google's Phone Number Hint API — a zero-permission system picker for SIM-based phone numbers.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "expo-module build",
     "clean": "expo-module clean",
@@ -11,17 +12,21 @@
     "test": "expo-module test",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
-    "expo-module": "expo-module",
-    "open:ios": "xed example/ios",
-    "open:android": "open -a \"Android Studio\" example/android"
+    "expo-module": "expo-module"
   },
   "keywords": [
     "react-native",
     "expo",
-    "expo-phone-number-hint",
-    "ExpoPhoneNumberHint"
+    "expo-module",
+    "phone-number",
+    "phone-hint",
+    "android",
+    "google-identity"
   ],
-  "repository": "https://github.com/shubh73/expo-phone-number-hint",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shubh73/expo-phone-number-hint.git"
+  },
   "bugs": {
     "url": "https://github.com/shubh73/expo-phone-number-hint/issues"
   },

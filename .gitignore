@@ -55,3 +55,12 @@ yarn-error.log
 
 # Expo
 .expo/*
+
+# Example app generated files
+example/node_modules/
+example/android/
+example/ios/
+example/package-lock.json
+
+# npm
+*.tgz

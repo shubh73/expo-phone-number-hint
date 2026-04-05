@@ -1,50 +1,131 @@
 package expo.modules.phonenumberhint
 
+import android.app.Activity
+import android.content.Context
+import android.content.IntentSender
+import android.util.Log
+import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.net.URL
+
+private const val TAG = "ExpoPhoneNumberHint"
+private const val REQUEST_CODE = 8471
 
 class ExpoPhoneNumberHintModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
+
+  @Volatile
+  private var pendingPromise: Promise? = null
+
+  private val context: Context
+    get() = appContext.reactContext ?: throw CodedException("ERR_CONTEXT", "React context is unavailable", null)
+
   override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('ExpoPhoneNumberHint')` in JavaScript.
+
     Name("ExpoPhoneNumberHint")
 
-    // Defines constant property on the module.
-    Constant("PI") {
-      Math.PI
+    // region Functions
+
+    AsyncFunction("isAvailable") {
+      val result = GoogleApiAvailability.getInstance()
+        .isGooglePlayServicesAvailable(context)
+      result == ConnectionResult.SUCCESS
     }
 
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      "Hello world! 👋"
-    }
-
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
-    }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
-    View(ExpoPhoneNumberHintView::class) {
-      // Defines a setter for the `url` prop.
-      Prop("url") { view: ExpoPhoneNumberHintView, url: URL ->
-        view.webView.loadUrl(url.toString())
+    AsyncFunction("requestPhoneNumber") { promise: Promise ->
+      val activity = appContext.currentActivity
+      if (activity == null || activity.isFinishing || activity.isDestroyed) {
+        promise.reject(CodedException("ERR_NO_ACTIVITY", "No foreground activity available", null))
+        return@AsyncFunction
       }
-      // Defines an event that the view can send to JavaScript.
-      Events("onLoad")
+
+      val playServicesResult = GoogleApiAvailability.getInstance()
+        .isGooglePlayServicesAvailable(context)
+      if (playServicesResult != ConnectionResult.SUCCESS) {
+        promise.reject(
+          CodedException(
+            "ERR_PLAY_SERVICES_UNAVAILABLE",
+            "Google Play Services is not available (status: $playServicesResult)",
+            null
+          )
+        )
+        return@AsyncFunction
+      }
+
+      // Reject any in-flight request before starting a new one
+      pendingPromise?.reject(
+        CodedException("ERR_INTERRUPTED", "A new request superseded this one", null)
+      )
+      pendingPromise = promise
+
+      val request = GetPhoneNumberHintIntentRequest.builder().build()
+
+      Identity.getSignInClient(activity)
+        .getPhoneNumberHintIntent(request)
+        .addOnSuccessListener { pendingIntent ->
+          try {
+            activity.startIntentSenderForResult(
+              pendingIntent.intentSender,
+              REQUEST_CODE,
+              null, 0, 0, 0
+            )
+          } catch (e: IntentSender.SendIntentException) {
+            Log.e(TAG, "Failed to launch phone number hint picker", e)
+            pendingPromise?.reject(
+              CodedException("ERR_LAUNCH_FAILED", e.message ?: "Failed to launch phone number picker", null)
+            )
+            pendingPromise = null
+          }
+        }
+        .addOnFailureListener { e ->
+          // Task failure typically means no SIM numbers available or Play Services issue
+          Log.e(TAG, "getPhoneNumberHintIntent failed", e)
+          pendingPromise?.reject(
+            CodedException("ERR_NO_HINT_AVAILABLE", e.message ?: "No phone number hints available", null)
+          )
+          pendingPromise = null
+        }
     }
+
+    // endregion
+
+    // region Lifecycle
+
+    OnActivityResult { _, payload ->
+      if (payload.requestCode != REQUEST_CODE) return@OnActivityResult
+
+      val promise = pendingPromise ?: return@OnActivityResult
+      pendingPromise = null
+
+      if (payload.resultCode != Activity.RESULT_OK) {
+        // User dismissed the picker — resolve null, not an error
+        promise.resolve(null)
+        return@OnActivityResult
+      }
+
+      try {
+        val phoneNumber = Identity.getSignInClient(appContext.currentActivity ?: context)
+          .getPhoneNumberFromIntent(payload.data)
+        promise.resolve(phoneNumber)
+      } catch (e: Exception) {
+        Log.e(TAG, "getPhoneNumberFromIntent failed", e)
+        promise.reject(
+          CodedException("ERR_EXTRACTION_FAILED", e.message ?: "Failed to extract phone number from result", null)
+        )
+      }
+    }
+
+    OnDestroy {
+      pendingPromise?.reject(
+        CodedException("ERR_MODULE_DESTROYED", "Module was destroyed before result arrived", null)
+      )
+      pendingPromise = null
+    }
+
+    // endregion
   }
 }

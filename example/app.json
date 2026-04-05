@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "expo-phone-number-hint-example",
+    "slug": "expo-phone-number-hint-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "expo.modules.phonenumberhint.example"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      },
+      "package": "expo.modules.phonenumberhint.example"
+    }
+  }
+}

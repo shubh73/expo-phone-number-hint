@@ -1,0 +1,49 @@
+name: "Bug Report"
+description: "Report a bug in expo-phone-number-hint"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please fill out this form so we can reproduce and fix the issue.
+  - type: input
+    attributes:
+      label: Package version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Expo SDK version
+      placeholder: "55"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Device / emulator
+      placeholder: "Pixel 7 (Android 14)"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Minimal reproducible example
+      description: |
+        Create a minimal repository that clearly demonstrates the bug.
+        Issues without a reproduction may be closed.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Explain how to reproduce the issue using the provided example.
+        When you get to the step where the issue occurs, explain what you expected to happen and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: Run `npx expo-env-info` and paste its output below.
+      render: text
+    validations:
+      required: false
