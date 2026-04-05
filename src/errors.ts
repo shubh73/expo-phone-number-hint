@@ -25,7 +25,7 @@ export class PhoneNumberHintError extends Error {
     if (error instanceof Error) {
       return new PhoneNumberHintError(
         (error as { code?: string }).code ?? "ERR_UNKNOWN",
-        error.message
+        error.message,
       );
     }
     return new PhoneNumberHintError("ERR_UNKNOWN", String(error));

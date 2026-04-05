@@ -24,6 +24,6 @@ export async function isAvailable(): Promise<boolean> {
 export async function requestPhoneNumber(): Promise<string | null> {
   throw new PhoneNumberHintError(
     PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
-    "expo-phone-number-hint is only supported on Android."
+    "expo-phone-number-hint is only supported on Android.",
   );
 }
