@@ -17,3 +17,5 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run lint
+        env:
+          ESLINT_USE_FLAT_CONFIG: false
