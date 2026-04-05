@@ -64,3 +64,8 @@ example/package-lock.json
 
 # npm
 *.tgz
+
+# skills
+.claude/
+.agents/
+skills-lock.json
