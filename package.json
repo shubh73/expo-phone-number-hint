@@ -1,6 +1,6 @@
 {
   "name": "expo-phone-number-hint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Expo module wrapping Google's Phone Number Hint API, provides a frictionless way to show a user's (SIM-based) phone numbers as a hint.",
   "main": "build/index.js",
   "types": "build/index.d.ts",

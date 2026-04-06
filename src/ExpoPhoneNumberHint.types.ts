@@ -12,8 +12,8 @@ export const PhoneNumberHintErrorCodes = {
   LAUNCH_FAILED: "ERR_LAUNCH_FAILED",
   /** Failed to extract the phone number from the picker result. */
   EXTRACTION_FAILED: "ERR_EXTRACTION_FAILED",
-  /** A new `requestPhoneNumber()` call superseded a pending one. */
-  INTERRUPTED: "ERR_INTERRUPTED",
+  /** Another request is already in progress. Await the current request first. */
+  ALREADY_IN_PROGRESS: "ERR_ALREADY_IN_PROGRESS",
   /** The native module was destroyed before a result was received. */
   MODULE_DESTROYED: "ERR_MODULE_DESTROYED",
   /** Called on a platform that does not support this API (iOS, web). */

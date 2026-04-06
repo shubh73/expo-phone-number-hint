@@ -17,8 +17,8 @@ internal class ExtractionFailedException(cause: Throwable? = null) :
 internal class NoActivityException :
   CodedException("No foreground activity available")
 
-internal class InterruptedException :
-  CodedException("A new request superseded this one")
+internal class AlreadyInProgressException :
+  CodedException("Phone number hint request already in progress. Await the current request first.")
 
 internal class ModuleDestroyedException :
   CodedException("Module was destroyed before result arrived")

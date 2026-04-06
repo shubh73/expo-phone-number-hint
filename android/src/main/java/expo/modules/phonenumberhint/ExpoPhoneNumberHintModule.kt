@@ -45,11 +45,12 @@ class ExpoPhoneNumberHintModule : Module() {
         return@AsyncFunction
       }
 
-      pendingPromise?.reject(InterruptedException())
+      if (pendingPromise != null) {
+        throw AlreadyInProgressException()
+      }
       pendingPromise = promise
 
       val request = GetPhoneNumberHintIntentRequest.builder().build()
-      val currentPromise = promise
 
       Identity.getSignInClient(activity)
         .getPhoneNumberHintIntent(request)
@@ -62,18 +63,14 @@ class ExpoPhoneNumberHintModule : Module() {
             )
           } catch (e: IntentSender.SendIntentException) {
             Log.e(TAG, "Failed to launch phone number hint picker", e)
-            if (pendingPromise === currentPromise) {
-              pendingPromise = null
-              currentPromise.reject(LaunchFailedException(e))
-            }
+            pendingPromise?.reject(LaunchFailedException(e))
+            pendingPromise = null
           }
         }
         .addOnFailureListener { e ->
           Log.e(TAG, "getPhoneNumberHintIntent failed", e)
-          if (pendingPromise === currentPromise) {
-            pendingPromise = null
-            currentPromise.reject(NoHintAvailableException(e))
-          }
+          pendingPromise?.reject(NoHintAvailableException(e))
+          pendingPromise = null
         }
     }
 

@@ -1,6 +1,12 @@
 # expo-phone-number-hint
 
-A system-level phone number picker powered by Google's [Phone Number Hint API](https://developer.android.com/identity/phone-number-hint). Shows a bottom-sheet with the device's SIM-based phone numbers and returns the selection in E.164 format.
+[![npm](https://img.shields.io/npm/v/expo-phone-number-hint?color=black)](https://www.npmjs.com/package/expo-phone-number-hint)
+[![CI](https://img.shields.io/github/actions/workflow/status/shubh73/expo-phone-number-hint/ci.yml?label=ci&color=black)](https://github.com/shubh73/expo-phone-number-hint/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/shubh73/expo-phone-number-hint?color=black)](LICENSE)
+
+Provides a frictionless way to show a user's (SIM-based) phone numbers as a hint, powered by Google's [Phone Number Hint API](https://developer.android.com/identity/phone-number-hint).
+
+![demo](docs/demo.gif)
 
 ## Installation
 
@@ -8,7 +14,20 @@ A system-level phone number picker powered by Google's [Phone Number Hint API](h
 npx expo install expo-phone-number-hint
 ```
 
-No additional setup required.
+## Usage
+
+```typescript
+import { requestPhoneNumber } from "expo-phone-number-hint";
+
+const phoneNumber = await requestPhoneNumber();
+
+if (phoneNumber) {
+  // User selected a number
+  console.log(phoneNumber); // "+919876543210"
+} else {
+  // User dismissed the picker
+}
+```
 
 ## API
 
@@ -41,7 +60,8 @@ Throws `PhoneNumberHintError` on failure.
 | `ERR_NO_ACTIVITY` | No foreground activity |
 | `ERR_LAUNCH_FAILED` | Failed to launch the picker |
 | `ERR_EXTRACTION_FAILED` | Failed to extract phone number from result |
-| `ERR_INTERRUPTED` | A new request superseded a pending one |
+| `ERR_ALREADY_IN_PROGRESS` | Another request is already showing the picker |
+| `ERR_MODULE_DESTROYED` | Module destroyed before result was delivered |
 | `ERR_UNSUPPORTED_PLATFORM` | Called on iOS or web |
 
 ### `isUnavailableError(error)`
@@ -51,22 +71,3 @@ function isUnavailableError(error: unknown): boolean
 ```
 
 Returns `true` if the error indicates the feature is unavailable on this device — useful for deciding whether to hide the feature entirely.
-
-## Usage
-
-```typescript
-import { requestPhoneNumber } from "expo-phone-number-hint";
-
-const phoneNumber = await requestPhoneNumber();
-
-if (phoneNumber) {
-  // User selected a number
-  console.log(phoneNumber); // "+919876543210"
-} else {
-  // User dismissed the picker
-}
-```
-
-## Contributing
-
-Contributions are welcome. Please open an issue first to discuss what you'd like to change.

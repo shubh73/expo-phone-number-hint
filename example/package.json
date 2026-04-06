@@ -1,6 +1,6 @@
 {
   "name": "expo-phone-number-hint-example",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -8,14 +8,16 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "expo": "~55.0.11",
-    "react": "19.0.0",
-    "react-native": "0.82.1"
+    "expo": "55.0.11",
+    "react": "19.2.0",
+    "react-native": "0.83.4",
+    "react-native-safe-area-context": "5.6.2"
   },
   "devDependencies": {
-    "@types/react": "~19.1.1",
-    "typescript": "~5.8.3"
+    "@types/react": "19.2.10",
+    "typescript": "5.9.2"
   },
+  "private": true,
   "expo": {
     "autolinking": {
       "nativeModulesDir": ".."
