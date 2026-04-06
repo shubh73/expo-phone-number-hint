@@ -23,14 +23,21 @@ export class PhoneNumberHintError extends Error {
   static from(error: unknown): PhoneNumberHintError {
     if (error instanceof PhoneNumberHintError) return error;
     if (error instanceof Error) {
-      return new PhoneNumberHintError(
-        (error as { code?: string }).code ?? "ERR_UNKNOWN",
-        error.message,
-      );
+      const code =
+        "code" in error && typeof error.code === "string"
+          ? error.code
+          : "ERR_UNKNOWN";
+      return new PhoneNumberHintError(code, error.message);
     }
     return new PhoneNumberHintError("ERR_UNKNOWN", String(error));
   }
 }
+
+const UNAVAILABLE_CODES = new Set<string>([
+  PhoneNumberHintErrorCodes.PLAY_SERVICES_UNAVAILABLE,
+  PhoneNumberHintErrorCodes.NO_HINT_AVAILABLE,
+  PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
+]);
 
 /**
  * Returns `true` if the error indicates the feature is unavailable on this device
@@ -42,13 +49,7 @@ export class PhoneNumberHintError extends Error {
  */
 export function isUnavailableError(error: unknown): boolean {
   if (error instanceof PhoneNumberHintError) {
-    return (
-      [
-        PhoneNumberHintErrorCodes.PLAY_SERVICES_UNAVAILABLE,
-        PhoneNumberHintErrorCodes.NO_HINT_AVAILABLE,
-        PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
-      ] as string[]
-    ).includes(error.code);
+    return UNAVAILABLE_CODES.has(error.code);
   }
   return false;
 }

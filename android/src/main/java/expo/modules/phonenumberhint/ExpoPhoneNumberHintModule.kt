@@ -1,7 +1,6 @@
 package expo.modules.phonenumberhint
 
 import android.app.Activity
-import android.content.Context
 import android.content.IntentSender
 import android.util.Log
 import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest
@@ -9,7 +8,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import expo.modules.kotlin.Promise
-import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
@@ -21,48 +20,36 @@ class ExpoPhoneNumberHintModule : Module() {
   @Volatile
   private var pendingPromise: Promise? = null
 
-  private val context: Context
-    get() = appContext.reactContext ?: throw CodedException("ERR_CONTEXT", "React context is unavailable", null)
+  private fun isPlayServicesAvailable(): Boolean {
+    val context = appContext.reactContext ?: return false
+    return GoogleApiAvailability.getInstance()
+      .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
+  }
 
   override fun definition() = ModuleDefinition {
 
     Name("ExpoPhoneNumberHint")
 
-    // region Functions
-
     AsyncFunction("isAvailable") {
-      val result = GoogleApiAvailability.getInstance()
-        .isGooglePlayServicesAvailable(context)
-      result == ConnectionResult.SUCCESS
+      isPlayServicesAvailable()
     }
 
     AsyncFunction("requestPhoneNumber") { promise: Promise ->
       val activity = appContext.currentActivity
       if (activity == null || activity.isFinishing || activity.isDestroyed) {
-        promise.reject(CodedException("ERR_NO_ACTIVITY", "No foreground activity available", null))
+        throw NoActivityException()
+      }
+
+      if (!isPlayServicesAvailable()) {
+        promise.reject(PlayServicesUnavailableException())
         return@AsyncFunction
       }
 
-      val playServicesResult = GoogleApiAvailability.getInstance()
-        .isGooglePlayServicesAvailable(context)
-      if (playServicesResult != ConnectionResult.SUCCESS) {
-        promise.reject(
-          CodedException(
-            "ERR_PLAY_SERVICES_UNAVAILABLE",
-            "Google Play Services is not available (status: $playServicesResult)",
-            null
-          )
-        )
-        return@AsyncFunction
-      }
-
-      // Reject any in-flight request before starting a new one
-      pendingPromise?.reject(
-        CodedException("ERR_INTERRUPTED", "A new request superseded this one", null)
-      )
+      pendingPromise?.reject(InterruptedException())
       pendingPromise = promise
 
       val request = GetPhoneNumberHintIntentRequest.builder().build()
+      val currentPromise = promise
 
       Identity.getSignInClient(activity)
         .getPhoneNumberHintIntent(request)
@@ -75,25 +62,20 @@ class ExpoPhoneNumberHintModule : Module() {
             )
           } catch (e: IntentSender.SendIntentException) {
             Log.e(TAG, "Failed to launch phone number hint picker", e)
-            pendingPromise?.reject(
-              CodedException("ERR_LAUNCH_FAILED", e.message ?: "Failed to launch phone number picker", null)
-            )
-            pendingPromise = null
+            if (pendingPromise === currentPromise) {
+              pendingPromise = null
+              currentPromise.reject(LaunchFailedException(e))
+            }
           }
         }
         .addOnFailureListener { e ->
-          // Task failure typically means no SIM numbers available or Play Services issue
           Log.e(TAG, "getPhoneNumberHintIntent failed", e)
-          pendingPromise?.reject(
-            CodedException("ERR_NO_HINT_AVAILABLE", e.message ?: "No phone number hints available", null)
-          )
-          pendingPromise = null
+          if (pendingPromise === currentPromise) {
+            pendingPromise = null
+            currentPromise.reject(NoHintAvailableException(e))
+          }
         }
     }
-
-    // endregion
-
-    // region Lifecycle
 
     OnActivityResult { _, payload ->
       if (payload.requestCode != REQUEST_CODE) return@OnActivityResult
@@ -102,30 +84,24 @@ class ExpoPhoneNumberHintModule : Module() {
       pendingPromise = null
 
       if (payload.resultCode != Activity.RESULT_OK) {
-        // User dismissed the picker — resolve null, not an error
         promise.resolve(null)
         return@OnActivityResult
       }
 
       try {
-        val phoneNumber = Identity.getSignInClient(appContext.currentActivity ?: context)
+        val context = appContext.reactContext ?: throw Exceptions.ReactContextLost()
+        val phoneNumber = Identity.getSignInClient(context)
           .getPhoneNumberFromIntent(payload.data)
         promise.resolve(phoneNumber)
       } catch (e: Exception) {
         Log.e(TAG, "getPhoneNumberFromIntent failed", e)
-        promise.reject(
-          CodedException("ERR_EXTRACTION_FAILED", e.message ?: "Failed to extract phone number from result", null)
-        )
+        promise.reject(ExtractionFailedException(e))
       }
     }
 
     OnDestroy {
-      pendingPromise?.reject(
-        CodedException("ERR_MODULE_DESTROYED", "Module was destroyed before result arrived", null)
-      )
+      pendingPromise?.reject(ModuleDestroyedException())
       pendingPromise = null
     }
-
-    // endregion
   }
 }
