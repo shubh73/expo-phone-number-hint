@@ -6,7 +6,7 @@ export {
   PhoneNumberHintErrorCodes,
   type PhoneNumberHintErrorCode,
 } from "./ExpoPhoneNumberHint.types";
-export { PhoneNumberHintError, isUnavailableError } from "./errors";
+export { PhoneNumberHintError } from "./errors";
 
 /**
  * Check whether the Phone Number Hint API can be used on this device.
@@ -16,11 +16,11 @@ export { PhoneNumberHintError, isUnavailableError } from "./errors";
  *
  * @returns `true` if the phone number picker can be shown, `false` otherwise.
  */
-export async function isAvailable(): Promise<boolean> {
-  if (!ExpoPhoneNumberHintModule.isAvailable) return false;
+export async function isAvailableAsync(): Promise<boolean> {
+  if (!ExpoPhoneNumberHintModule.isAvailableAsync) return false;
 
   try {
-    return await ExpoPhoneNumberHintModule.isAvailable();
+    return await ExpoPhoneNumberHintModule.isAvailableAsync();
   } catch {
     return false;
   }
@@ -35,7 +35,7 @@ export async function isAvailable(): Promise<boolean> {
  *
  * @example
  * ```ts
- * const phoneNumber = await requestPhoneNumber();
+ * const phoneNumber = await showPhoneNumberHintAsync();
  * if (phoneNumber) {
  *   // user selected a number
  * } else {
@@ -43,8 +43,8 @@ export async function isAvailable(): Promise<boolean> {
  * }
  * ```
  */
-export async function requestPhoneNumber(): Promise<string | null> {
-  if (!ExpoPhoneNumberHintModule.requestPhoneNumber) {
+export async function showPhoneNumberHintAsync(): Promise<string | null> {
+  if (!ExpoPhoneNumberHintModule.showPhoneNumberHintAsync) {
     throw new PhoneNumberHintError(
       PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
       "expo-phone-number-hint is only supported on Android.",
@@ -52,7 +52,7 @@ export async function requestPhoneNumber(): Promise<string | null> {
   }
 
   try {
-    return await ExpoPhoneNumberHintModule.requestPhoneNumber();
+    return await ExpoPhoneNumberHintModule.showPhoneNumberHintAsync();
   } catch (e) {
     throw PhoneNumberHintError.from(e);
   }

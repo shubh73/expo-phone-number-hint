@@ -1,6 +1,6 @@
 import { requireNativeModule } from "expo";
 
 export default requireNativeModule<{
-  isAvailable(): Promise<boolean>;
-  requestPhoneNumber(): Promise<string | null>;
+  isAvailableAsync(): Promise<boolean>;
+  showPhoneNumberHintAsync(): Promise<string | null>;
 }>("ExpoPhoneNumberHint");

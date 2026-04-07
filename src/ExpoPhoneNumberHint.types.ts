@@ -1,5 +1,5 @@
 /**
- * All error codes that can be thrown by `requestPhoneNumber()`.
+ * All error codes that can be thrown by `showPhoneNumberHintAsync()`.
  */
 export const PhoneNumberHintErrorCodes = {
   /** Google Play Services is missing or outdated. */

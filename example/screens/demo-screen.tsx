@@ -9,10 +9,9 @@ import {
   View,
 } from "react-native";
 import {
-  isAvailable,
-  isUnavailableError,
+  isAvailableAsync,
   PhoneNumberHintError,
-  requestPhoneNumber,
+  showPhoneNumberHintAsync,
 } from "expo-phone-number-hint";
 
 const isAndroid = Platform.OS === "android";
@@ -22,7 +21,7 @@ type Status =
   | { type: "loading" }
   | { type: "selected"; phoneNumber: string }
   | { type: "dismissed" }
-  | { type: "error"; code: string; message: string; unavailable: boolean };
+  | { type: "error"; code: string; message: string };
 
 export default function DemoScreen({
   onShowValidation,
@@ -37,7 +36,7 @@ export default function DemoScreen({
     setStatus({ type: "loading" });
 
     try {
-      const result = await requestPhoneNumber();
+      const result = await showPhoneNumberHintAsync();
 
       if (result) {
         setPhoneNumber(result);
@@ -46,19 +45,17 @@ export default function DemoScreen({
         setStatus({ type: "dismissed" });
       }
     } catch (e) {
-      const error =
-        e instanceof PhoneNumberHintError ? e : PhoneNumberHintError.from(e);
+      const error = PhoneNumberHintError.from(e);
       setStatus({
         type: "error",
         code: error.code,
         message: error.message,
-        unavailable: isUnavailableError(e),
       });
     }
   };
 
   const handleCheckAvailability = async () => {
-    const result = await isAvailable();
+    const result = await isAvailableAsync();
     setAvailable(result);
   };
 
@@ -128,11 +125,6 @@ export default function DemoScreen({
               <Text style={styles.statusError}>
                 {status.code}: {status.message}
               </Text>
-              {status.unavailable && (
-                <Text style={styles.statusErrorHint}>
-                  This device does not support the Phone Number Hint API.
-                </Text>
-              )}
             </View>
           )}
 
@@ -147,7 +139,7 @@ export default function DemoScreen({
 
           {available !== null && (
             <Text style={styles.availabilityText}>
-              isAvailable(): {String(available)}
+              isAvailableAsync(): {String(available)}
             </Text>
           )}
         </>
@@ -252,10 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#991b1b",
     fontWeight: "600",
-  },
-  statusErrorHint: {
-    fontSize: 13,
-    color: "#b91c1c",
   },
   divider: {
     height: 1,

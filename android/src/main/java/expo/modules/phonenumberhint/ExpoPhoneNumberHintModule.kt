@@ -30,11 +30,11 @@ class ExpoPhoneNumberHintModule : Module() {
 
     Name("ExpoPhoneNumberHint")
 
-    AsyncFunction("isAvailable") {
+    AsyncFunction("isAvailableAsync") {
       isPlayServicesAvailable()
     }
 
-    AsyncFunction("requestPhoneNumber") { promise: Promise ->
+    AsyncFunction("showPhoneNumberHintAsync") { promise: Promise ->
       val activity = appContext.currentActivity
       if (activity == null || activity.isFinishing || activity.isDestroyed) {
         throw NoActivityException()

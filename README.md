@@ -17,9 +17,9 @@ npx expo install expo-phone-number-hint
 ## Usage
 
 ```typescript
-import { requestPhoneNumber } from "expo-phone-number-hint";
+import { showPhoneNumberHintAsync } from "expo-phone-number-hint";
 
-const phoneNumber = await requestPhoneNumber();
+const phoneNumber = await showPhoneNumberHintAsync();
 
 if (phoneNumber) {
   // User selected a number
@@ -31,18 +31,18 @@ if (phoneNumber) {
 
 ## API
 
-### `isAvailable()`
+### `isAvailableAsync()`
 
 ```typescript
-function isAvailable(): Promise<boolean>
+function isAvailableAsync(): Promise<boolean>
 ```
 
 Check whether the Phone Number Hint API can be used on this device. Never throws.
 
-### `requestPhoneNumber()`
+### `showPhoneNumberHintAsync()`
 
 ```typescript
-function requestPhoneNumber(): Promise<string | null>
+function showPhoneNumberHintAsync(): Promise<string | null>
 ```
 
 Show the system phone number picker.
@@ -63,11 +63,3 @@ Throws `PhoneNumberHintError` on failure.
 | `ERR_ALREADY_IN_PROGRESS` | Another request is already showing the picker |
 | `ERR_MODULE_DESTROYED` | Module destroyed before result was delivered |
 | `ERR_UNSUPPORTED_PLATFORM` | Called on iOS or web |
-
-### `isUnavailableError(error)`
-
-```typescript
-function isUnavailableError(error: unknown): boolean
-```
-
-Returns `true` if the error indicates the feature is unavailable on this device — useful for deciding whether to hide the feature entirely.

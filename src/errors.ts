@@ -1,7 +1,5 @@
-import { PhoneNumberHintErrorCodes } from "./ExpoPhoneNumberHint.types";
-
 /**
- * Error thrown by `requestPhoneNumber()` on non-cancellation failures.
+ * Error thrown by `showPhoneNumberHintAsync()` on non-cancellation failures.
  * The `code` property contains one of the `PhoneNumberHintErrorCodes` values.
  */
 export class PhoneNumberHintError extends Error {
@@ -31,25 +29,4 @@ export class PhoneNumberHintError extends Error {
     }
     return new PhoneNumberHintError("ERR_UNKNOWN", String(error));
   }
-}
-
-const UNAVAILABLE_CODES = new Set<string>([
-  PhoneNumberHintErrorCodes.PLAY_SERVICES_UNAVAILABLE,
-  PhoneNumberHintErrorCodes.NO_HINT_AVAILABLE,
-  PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
-]);
-
-/**
- * Returns `true` if the error indicates the feature is unavailable on this device
- * (Play Services missing, no SIM, or unsupported platform). Useful for deciding
- * whether to hide the phone number hint feature entirely.
- *
- * @param error The caught error value.
- * @returns `true` if the error represents an unavailability condition.
- */
-export function isUnavailableError(error: unknown): boolean {
-  if (error instanceof PhoneNumberHintError) {
-    return UNAVAILABLE_CODES.has(error.code);
-  }
-  return false;
 }

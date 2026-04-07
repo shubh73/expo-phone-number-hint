@@ -8,19 +8,13 @@ import {
   View,
 } from "react-native";
 import {
-  isAvailable,
-  isUnavailableError,
+  isAvailableAsync,
   PhoneNumberHintError,
   PhoneNumberHintErrorCodes,
-  requestPhoneNumber,
+  showPhoneNumberHintAsync,
 } from "expo-phone-number-hint";
 
-type ScenarioId =
-  | "availability"
-  | "standard"
-  | "dismiss"
-  | "concurrency"
-  | "unavailability";
+type ScenarioId = "availability" | "standard" | "dismiss" | "concurrency";
 
 type ScenarioStatus = "idle" | "running" | "pass" | "fail" | "na";
 
@@ -41,7 +35,7 @@ const SCENARIOS: Scenario[] = [
   {
     id: "availability",
     title: "Availability",
-    description: "isAvailable() returns boolean without throwing.",
+    description: "isAvailableAsync() returns boolean without throwing.",
   },
   {
     id: "standard",
@@ -58,11 +52,6 @@ const SCENARIOS: Scenario[] = [
     title: "Concurrent requests",
     description:
       "Second call rejects with ERR_ALREADY_IN_PROGRESS while first stays active.",
-  },
-  {
-    id: "unavailability",
-    title: "Unavailability classification",
-    description: "On no-hint devices, isUnavailableError() returns true.",
   },
 ];
 
@@ -98,7 +87,6 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       standard: "idle",
       dismiss: "idle",
       concurrency: "idle",
-      unavailability: "idle",
     }),
   );
   const [notes, setNotes] = useState<Record<ScenarioId, string>>(() => ({
@@ -106,7 +94,6 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
     standard: "",
     dismiss: "",
     concurrency: "",
-    unavailability: "",
   }));
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
@@ -139,9 +126,9 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       update("availability", "running", "");
       log("info", "Checking availability...");
       try {
-        const result = await isAvailable();
-        update("availability", "pass", `isAvailable() → ${result}`);
-        log("pass", `isAvailable() → ${result}`);
+        const result = await isAvailableAsync();
+        update("availability", "pass", `isAvailableAsync() → ${result}`);
+        log("pass", `isAvailableAsync() → ${result}`);
       } catch (e) {
         const { code, message } = parseError(e);
         update("availability", "fail", `${code}: ${message}`);
@@ -151,7 +138,7 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       update("standard", "running", "Waiting for selection...");
       log("info", "Showing picker...");
       try {
-        const result = await requestPhoneNumber();
+        const result = await showPhoneNumberHintAsync();
         if (result) {
           update("standard", "pass", result);
           log("pass", `Selected: ${result}`);
@@ -168,7 +155,7 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       update("dismiss", "running", "Dismiss the picker...");
       log("info", "Showing picker (dismiss it)...");
       try {
-        const result = await requestPhoneNumber();
+        const result = await showPhoneNumberHintAsync();
         if (result === null) {
           update("dismiss", "pass", "Received null");
           log("pass", "Dismissed → null");
@@ -185,11 +172,11 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       update("concurrency", "running", "Testing overlap...");
       log("info", "Starting concurrent requests...");
 
-      const first = requestPhoneNumber();
+      const first = showPhoneNumberHintAsync();
       let secondError: { code: string; message: string } | null = null;
 
       try {
-        await requestPhoneNumber();
+        await showPhoneNumberHintAsync();
       } catch (e) {
         secondError = parseError(e);
       }
@@ -202,34 +189,16 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
             : r1 === null
               ? "dismissed"
               : `error: ${r1.code}`;
-        const note = `Second call rejected with ERR_ALREADY_IN_PROGRESS. First call: ${firstResult}.`;
+        const note = `Second call rejected with ${PhoneNumberHintErrorCodes.ALREADY_IN_PROGRESS}. First call: ${firstResult}.`;
         update("concurrency", "pass", note);
         log("pass", note);
       } else {
         const note = secondError
-          ? `Second call got ${secondError.code} instead of ERR_ALREADY_IN_PROGRESS`
+          ? `Second call got ${secondError.code} instead of ${PhoneNumberHintErrorCodes.ALREADY_IN_PROGRESS}`
           : "Second call did not throw";
         update("concurrency", "fail", note);
         log("fail", note);
         await first.catch(() => {});
-      }
-    } else if (id === "unavailability") {
-      update("unavailability", "running", "Triggering request...");
-      log("info", "Testing unavailability classification...");
-      try {
-        const result = await requestPhoneNumber();
-        update(
-          "unavailability",
-          "na",
-          result ? `Got number: ${result}` : "Picker dismissed",
-        );
-        log("warn", "No error to classify");
-      } catch (e) {
-        const { code } = parseError(e);
-        const unavailable = isUnavailableError(e);
-        const note = `${code} → isUnavailableError: ${unavailable}`;
-        update("unavailability", unavailable ? "pass" : "fail", note);
-        log(unavailable ? "pass" : "fail", note);
       }
     }
   };
