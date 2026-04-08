@@ -43,10 +43,11 @@
   "homepage": "https://github.com/shubh73/expo-phone-number-hint#readme",
   "dependencies": {},
   "devDependencies": {
-    "@types/react": "~19.1.1",
+    "@types/react": "~19.2.10",
+    "expo": "~55.0.12",
     "expo-module-scripts": "^55.0.2",
-    "expo": "^55.0.11",
-    "react-native": "0.82.1"
+    "expo-modules-core": "~55.0.21",
+    "react-native": "0.83.4"
   },
   "peerDependencies": {
     "expo": "*",
