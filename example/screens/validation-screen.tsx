@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import {
   isAvailableAsync,
-  PhoneNumberHintError,
   PhoneNumberHintErrorCodes,
   showPhoneNumberHintAsync,
 } from "expo-phone-number-hint";
@@ -56,9 +55,6 @@ const SCENARIOS: Scenario[] = [
 ];
 
 function parseError(error: unknown): { code: string; message: string } {
-  if (error instanceof PhoneNumberHintError) {
-    return { code: error.code, message: error.message };
-  }
   if (error instanceof Error) {
     const code =
       "code" in error && typeof error.code === "string"

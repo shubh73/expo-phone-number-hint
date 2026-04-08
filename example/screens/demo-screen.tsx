@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import {
   isAvailableAsync,
-  PhoneNumberHintError,
   showPhoneNumberHintAsync,
 } from "expo-phone-number-hint";
 
@@ -45,12 +44,12 @@ export default function DemoScreen({
         setStatus({ type: "dismissed" });
       }
     } catch (e) {
-      const error = PhoneNumberHintError.from(e);
-      setStatus({
-        type: "error",
-        code: error.code,
-        message: error.message,
-      });
+      const code =
+        e instanceof Error && "code" in e && typeof e.code === "string"
+          ? e.code
+          : "UNKNOWN";
+      const message = e instanceof Error ? e.message : String(e);
+      setStatus({ type: "error", code, message });
     }
   };
 

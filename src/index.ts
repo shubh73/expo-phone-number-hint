@@ -1,12 +1,11 @@
-import { PhoneNumberHintErrorCodes } from "./ExpoPhoneNumberHint.types";
+import { UnavailabilityError } from "expo-modules-core";
+
 import ExpoPhoneNumberHintModule from "./ExpoPhoneNumberHintModule";
-import { PhoneNumberHintError } from "./errors";
 
 export {
   PhoneNumberHintErrorCodes,
   type PhoneNumberHintErrorCode,
 } from "./ExpoPhoneNumberHint.types";
-export { PhoneNumberHintError } from "./errors";
 
 /**
  * Check whether the Phone Number Hint API can be used on this device.
@@ -45,15 +44,11 @@ export async function isAvailableAsync(): Promise<boolean> {
  */
 export async function showPhoneNumberHintAsync(): Promise<string | null> {
   if (!ExpoPhoneNumberHintModule.showPhoneNumberHintAsync) {
-    throw new PhoneNumberHintError(
-      PhoneNumberHintErrorCodes.UNSUPPORTED_PLATFORM,
-      "expo-phone-number-hint is only supported on Android.",
+    throw new UnavailabilityError(
+      "expo-phone-number-hint",
+      "showPhoneNumberHintAsync",
     );
   }
 
-  try {
-    return await ExpoPhoneNumberHintModule.showPhoneNumberHintAsync();
-  } catch (e) {
-    throw PhoneNumberHintError.from(e);
-  }
+  return await ExpoPhoneNumberHintModule.showPhoneNumberHintAsync();
 }

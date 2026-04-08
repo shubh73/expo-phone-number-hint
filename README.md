@@ -17,34 +17,20 @@ npx expo install expo-phone-number-hint
 ## Usage
 
 ```typescript
-import { showPhoneNumberHintAsync } from "expo-phone-number-hint";
-
-const phoneNumber = await showPhoneNumberHintAsync();
-
-if (phoneNumber) {
-  // User selected a number
-  console.log(phoneNumber); // "+919876543210"
-} else {
-  // User dismissed the picker
-}
-```
-
-### Handling errors
-
-```typescript
 import {
+  isAvailableAsync,
   showPhoneNumberHintAsync,
-  PhoneNumberHintError,
-  PhoneNumberHintErrorCodes,
 } from "expo-phone-number-hint";
 
-try {
+const isAvailable = await isAvailableAsync();
+if (isAvailable) {
   const phoneNumber = await showPhoneNumberHintAsync();
-  // ...
-} catch (e) {
-  const error = PhoneNumberHintError.from(e);
-  if (error.code === PhoneNumberHintErrorCodes.PLAY_SERVICES_UNAVAILABLE) {
-    // Hide the feature on this device
+
+  if (phoneNumber) {
+    // user selected a number
+    console.log(phoneNumber); // "+919876543210"
+  } else {
+    // user dismissed the picker
   }
 }
 ```
@@ -69,7 +55,7 @@ Show the system phone number picker.
 
 Returns the selected phone number in E.164 format (e.g. `"+14155551234"`), or `null` if the user dismissed the picker.
 
-Throws `PhoneNumberHintError` on failure.
+Throws an error with a `code` property on failure. See [Error codes](#error-codes) below.
 
 ### Error codes
 
@@ -82,7 +68,7 @@ Throws `PhoneNumberHintError` on failure.
 | `ERR_EXTRACTION_FAILED` | Failed to extract phone number from result |
 | `ERR_ALREADY_IN_PROGRESS` | Another request is already showing the picker |
 | `ERR_MODULE_DESTROYED` | Module destroyed before result was delivered |
-| `ERR_UNSUPPORTED_PLATFORM` | Called on iOS or web |
+| `ERR_UNAVAILABLE` | Called on a platform where the picker is not available (iOS or web) |
 
 ## Play Services Auth version
 

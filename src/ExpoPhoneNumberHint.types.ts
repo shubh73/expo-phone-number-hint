@@ -16,8 +16,8 @@ export const PhoneNumberHintErrorCodes = {
   ALREADY_IN_PROGRESS: "ERR_ALREADY_IN_PROGRESS",
   /** The native module was destroyed before a result was received. */
   MODULE_DESTROYED: "ERR_MODULE_DESTROYED",
-  /** Called on a platform that does not support this API (iOS, web). */
-  UNSUPPORTED_PLATFORM: "ERR_UNSUPPORTED_PLATFORM",
+  /** Called on a platform where the picker is not available (iOS or web). */
+  UNAVAILABLE: "ERR_UNAVAILABLE",
 } as const;
 
 /**
