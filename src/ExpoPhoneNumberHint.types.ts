@@ -2,9 +2,9 @@
  * All error codes that can be thrown by `showPhoneNumberHintAsync()`.
  */
 export const PhoneNumberHintErrorCodes = {
-  /** Google Play Services is missing or outdated. */
+  /** Google Play Services is unavailable. */
   PLAY_SERVICES_UNAVAILABLE: "ERR_PLAY_SERVICES_UNAVAILABLE",
-  /** No phone number hints available (no SIM or no stored numbers). */
+  /** No phone number hints available. */
   NO_HINT_AVAILABLE: "ERR_NO_HINT_AVAILABLE",
   /** No foreground activity available. */
   NO_ACTIVITY: "ERR_NO_ACTIVITY",

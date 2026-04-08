@@ -29,6 +29,26 @@ if (phoneNumber) {
 }
 ```
 
+### Handling errors
+
+```typescript
+import {
+  showPhoneNumberHintAsync,
+  PhoneNumberHintError,
+  PhoneNumberHintErrorCodes,
+} from "expo-phone-number-hint";
+
+try {
+  const phoneNumber = await showPhoneNumberHintAsync();
+  // ...
+} catch (e) {
+  const error = PhoneNumberHintError.from(e);
+  if (error.code === PhoneNumberHintErrorCodes.PLAY_SERVICES_UNAVAILABLE) {
+    // Hide the feature on this device
+  }
+}
+```
+
 ## API
 
 ### `isAvailableAsync()`
@@ -55,11 +75,21 @@ Throws `PhoneNumberHintError` on failure.
 
 | Code | Meaning |
 |------|---------|
-| `ERR_PLAY_SERVICES_UNAVAILABLE` | Google Play Services missing or outdated |
-| `ERR_NO_HINT_AVAILABLE` | No phone numbers available (no SIM / no stored numbers) |
+| `ERR_PLAY_SERVICES_UNAVAILABLE` | Google Play Services is unavailable |
+| `ERR_NO_HINT_AVAILABLE` | No phone number hints available |
 | `ERR_NO_ACTIVITY` | No foreground activity |
 | `ERR_LAUNCH_FAILED` | Failed to launch the picker |
 | `ERR_EXTRACTION_FAILED` | Failed to extract phone number from result |
 | `ERR_ALREADY_IN_PROGRESS` | Another request is already showing the picker |
 | `ERR_MODULE_DESTROYED` | Module destroyed before result was delivered |
 | `ERR_UNSUPPORTED_PLATFORM` | Called on iOS or web |
+
+## Play Services Auth version
+
+Defaults to `com.google.android.gms:play-services-auth:21.5.1`. To override, set `playServicesAuthVersion` in your root `android/build.gradle`:
+
+```gradle
+ext {
+  playServicesAuthVersion = "21.4.0"
+}
+```
