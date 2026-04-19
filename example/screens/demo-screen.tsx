@@ -43,13 +43,8 @@ export default function DemoScreen({
       } else {
         setStatus({ type: "dismissed" });
       }
-    } catch (e) {
-      const code =
-        e instanceof Error && "code" in e && typeof e.code === "string"
-          ? e.code
-          : "UNKNOWN";
-      const message = e instanceof Error ? e.message : String(e);
-      setStatus({ type: "error", code, message });
+    } catch (e: any) {
+      setStatus({ type: "error", code: e.code, message: e.message });
     }
   };
 

@@ -54,17 +54,6 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
-function parseError(error: unknown): { code: string; message: string } {
-  if (error instanceof Error) {
-    const code =
-      "code" in error && typeof error.code === "string"
-        ? error.code
-        : "UNKNOWN";
-    return { code, message: error.message };
-  }
-  return { code: "UNKNOWN", message: String(error) };
-}
-
 const STATUS_CONFIG: Record<
   ScenarioStatus,
   { label: string; color: string; bg: string }
@@ -125,10 +114,9 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
         const result = await isAvailableAsync();
         update("availability", "pass", `isAvailableAsync() → ${result}`);
         log("pass", `isAvailableAsync() → ${result}`);
-      } catch (e) {
-        const { code, message } = parseError(e);
-        update("availability", "fail", `${code}: ${message}`);
-        log("fail", `${code}: ${message}`);
+      } catch (e: any) {
+        update("availability", "fail", `${e.code}: ${e.message}`);
+        log("fail", `${e.code}: ${e.message}`);
       }
     } else if (id === "standard") {
       update("standard", "running", "Waiting for selection...");
@@ -142,10 +130,9 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
           update("standard", "fail", "Picker dismissed (use Dismiss test)");
           log("fail", "Dismissed instead of selecting");
         }
-      } catch (e) {
-        const { code, message } = parseError(e);
-        update("standard", "fail", `${code}: ${message}`);
-        log("fail", `${code}: ${message}`);
+      } catch (e: any) {
+        update("standard", "fail", `${e.code}: ${e.message}`);
+        log("fail", `${e.code}: ${e.message}`);
       }
     } else if (id === "dismiss") {
       update("dismiss", "running", "Dismiss the picker...");
@@ -159,10 +146,9 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
           update("dismiss", "fail", `Got number instead: ${result}`);
           log("fail", `Expected null, got: ${result}`);
         }
-      } catch (e) {
-        const { code, message } = parseError(e);
-        update("dismiss", "fail", `${code}: ${message}`);
-        log("fail", `${code}: ${message}`);
+      } catch (e: any) {
+        update("dismiss", "fail", `${e.code}: ${e.message}`);
+        log("fail", `${e.code}: ${e.message}`);
       }
     } else if (id === "concurrency") {
       update("concurrency", "running", "Testing overlap...");
@@ -173,12 +159,15 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
 
       try {
         await showPhoneNumberHintAsync();
-      } catch (e) {
-        secondError = parseError(e);
+      } catch (e: any) {
+        secondError = { code: e.code, message: e.message };
       }
 
       if (secondError?.code === PhoneNumberHintErrorCodes.ALREADY_IN_PROGRESS) {
-        const r1 = await first.catch((e) => parseError(e));
+        const r1 = await first.catch((e: any) => ({
+          code: e.code,
+          message: e.message,
+        }));
         const firstResult =
           typeof r1 === "string"
             ? `selected: ${r1}`
