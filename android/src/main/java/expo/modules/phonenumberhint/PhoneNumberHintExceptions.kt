@@ -3,22 +3,28 @@ package expo.modules.phonenumberhint
 import expo.modules.kotlin.exception.CodedException
 
 internal class PlayServicesUnavailableException :
-  CodedException("Google Play Services is not available")
+  CodedException("ERR_PLAY_SERVICES_UNAVAILABLE", "Google Play Services is not available", null)
 
-internal class NoHintAvailableException(cause: Throwable? = null) :
-  CodedException("No phone number hints available", cause)
+internal class NoHintAvailableException(
+  cause: Throwable? = null,
+  message: String = "No phone number hints available"
+) : CodedException("ERR_NO_HINT_AVAILABLE", message, cause)
 
-internal class LaunchFailedException(cause: Throwable? = null) :
-  CodedException("Failed to launch phone number picker", cause)
+internal class LaunchFailedException(
+  cause: Throwable? = null,
+  message: String = "Failed to launch phone number picker"
+) : CodedException("ERR_LAUNCH_FAILED", message, cause)
 
-internal class ExtractionFailedException(cause: Throwable? = null) :
-  CodedException("Failed to extract phone number from result", cause)
+internal class ExtractionFailedException(
+  cause: Throwable? = null,
+  message: String = "Failed to extract phone number from result"
+) : CodedException("ERR_EXTRACTION_FAILED", message, cause)
 
 internal class NoActivityException :
-  CodedException("No foreground activity available")
+  CodedException("ERR_NO_ACTIVITY", "No foreground activity available", null)
 
 internal class AlreadyInProgressException :
-  CodedException("Phone number hint request already in progress. Await the current request first.")
+  CodedException("ERR_ALREADY_IN_PROGRESS", "Phone number hint request already in progress. Await the current request first.", null)
 
 internal class ModuleDestroyedException :
-  CodedException("Module was destroyed before result arrived")
+  CodedException("ERR_MODULE_DESTROYED", "Module was destroyed before result arrived", null)

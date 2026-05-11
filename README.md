@@ -55,9 +55,11 @@ Show the system phone number picker.
 
 Returns the selected phone number in E.164 format (e.g. `"+14155551234"`), or `null` if the user dismissed the picker.
 
-Throws an error with a `code` property on failure. See [Error codes](#error-codes) below.
+Throws an error with a `code` property on failure. See [Handling errors](#handling-errors) below.
 
-### Error codes
+## Handling errors
+
+All known codes are exported as `PhoneNumberHintErrorCodes`.
 
 | Code | Meaning |
 |------|---------|

@@ -63,13 +63,13 @@ class ExpoPhoneNumberHintModule : Module() {
             )
           } catch (e: IntentSender.SendIntentException) {
             Log.e(TAG, "Failed to launch phone number hint picker", e)
-            pendingPromise?.reject(LaunchFailedException(e))
+            pendingPromise?.reject(LaunchFailedException(cause = e))
             pendingPromise = null
           }
         }
         .addOnFailureListener { e ->
           Log.e(TAG, "getPhoneNumberHintIntent failed", e)
-          pendingPromise?.reject(NoHintAvailableException(e))
+          pendingPromise?.reject(NoHintAvailableException(cause = e))
           pendingPromise = null
         }
     }
@@ -92,7 +92,7 @@ class ExpoPhoneNumberHintModule : Module() {
         promise.resolve(phoneNumber)
       } catch (e: Exception) {
         Log.e(TAG, "getPhoneNumberFromIntent failed", e)
-        promise.reject(ExtractionFailedException(e))
+        promise.reject(ExtractionFailedException(cause = e))
       }
     }
 
