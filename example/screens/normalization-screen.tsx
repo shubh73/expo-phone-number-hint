@@ -17,10 +17,10 @@ const isAndroid = Platform.OS === "android";
 
 type Preset = { label: string; number: string; regionCode: string };
 
-// Inputs that exercise formatToE164's recovery — and its limits. The +44 case
-// returns null on purpose: stripping a misattributed prefix is the consuming
-// app's policy, not the library's job. An empty region exercises the
-// region-less mode for "+"-prefixed international numbers.
+// Presets cover formatToE164's behavior and its limits. The +44 case returns
+// null by design — repairing a misattributed prefix is the app's decision, not
+// the library's. An empty region exercises parsing "+"-prefixed numbers
+// without a region.
 const PRESETS: Preset[] = [
   { label: "National (IN)", number: "9705783855", regionCode: "IN" },
   { label: "Leading zero (IN)", number: "09705783855", regionCode: "IN" },

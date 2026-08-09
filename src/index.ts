@@ -32,9 +32,11 @@ export async function isAvailableAsync(): Promise<boolean> {
  * Show the system phone number hint picker. The picker displays phone numbers
  * from the device's SIM cards and returns the user's selection.
  *
- * @returns A result object. On selection, `canceled` is `false` and `hint`
- *          holds the raw `number`, its derived `e164` value and the SIM
- *          `regionCode`. On dismissal, `canceled` is `true` and `hint` is `null`.
+ * @returns A promise that fulfills with a `PhoneNumberHintResult`. When the
+ *          user selects a number, `canceled` is `false` and `hint` holds the
+ *          verbatim `number`, its derived `e164` form, and the SIM `regionCode`.
+ *          When the user dismisses the picker, `canceled` is `true` and `hint`
+ *          is `null`.
  *
  * @example
  * ```ts
@@ -56,18 +58,20 @@ export async function showPhoneNumberHintAsync(): Promise<PhoneNumberHintResult>
 }
 
 /**
- * Format a phone number to E.164 (e.g. `"+14155551234"`), validating it against
- * the region's numbering rules in the process. Powered by the Android
- * framework's bundled libphonenumber, so it adds no bytes to your bundle.
+ * Formats a phone number as E.164 (e.g. `"+14155551234"`), validating it
+ * against the region's numbering rules. Uses the `libphonenumber`
+ * implementation bundled with the Android OS, so it adds nothing to your
+ * app's bundle.
  *
- * @param number A phone number in national or international format.
- * @param regionCode The ISO 3166-1 alpha-2 region (e.g. `"US"`) to interpret
- *                   `number` against when it has no country code. May be
- *                   omitted for `"+"`-prefixed international numbers, which
- *                   carry their own country code.
- * @returns The E.164 number, or `null` if it is not a valid number (for the
- *          region, when one is given). Always returns `null` on platforms
- *          other than Android.
+ * On iOS and web, this returns `null`.
+ *
+ * @param number The phone number to format, in national or international format.
+ * @param regionCode The ISO 3166-1 alpha-2 region code (e.g. `"US"`) used to
+ *                   interpret `number` when it does not include a country code.
+ *                   Can be omitted when `number` starts with `+`.
+ * @returns The number in E.164 format, or `null` if it is not a valid phone
+ *          number.
+ * @platform android
  */
 export function formatToE164(
   number: string,
@@ -79,12 +83,15 @@ export function formatToE164(
 }
 
 /**
- * Get the ISO 3166-1 alpha-2 region code of the active SIM (e.g. `"US"`),
- * falling back to the network region. On dual-SIM devices this is the default
- * subscription's region.
+ * Gets the ISO 3166-1 alpha-2 region code of the active SIM, falling back to
+ * the current network's region. If the device has dual SIM cards, only the
+ * region for the default subscription is returned.
  *
- * @returns The region code, or `null` if no SIM region is available or the
- *          platform is not Android.
+ * On iOS and web, this returns `null`.
+ *
+ * @returns A promise that fulfills with the region code (e.g. `"US"`), or
+ *          `null` if no SIM or network region is available.
+ * @platform android
  */
 export async function getSimRegionCodeAsync(): Promise<string | null> {
   if (!ExpoPhoneNumberHintModule.getSimRegionCodeAsync) return null;

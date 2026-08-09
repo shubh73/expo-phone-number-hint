@@ -42,8 +42,7 @@ class ExpoPhoneNumberHintModule : Module() {
       .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
   }
 
-  // The SIM is the authoritative origin of a hint, so prefer its region over the
-  // network region, which is wrong while roaming.
+  // Prefer the SIM region; the network region is wrong while roaming.
   private fun resolveSimRegion(context: Context): String? {
     val telephonyManager =
       context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager ?: return null
@@ -54,8 +53,6 @@ class ExpoPhoneNumberHintModule : Module() {
     return null
   }
 
-  // A null region is valid input: libphonenumber can parse "+"-prefixed
-  // international numbers without a default region.
   private fun toE164OrNull(number: String, regionCode: String?): String? =
     try {
       PhoneNumberUtils.formatNumberToE164(number, regionCode)

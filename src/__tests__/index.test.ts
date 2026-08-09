@@ -17,8 +17,6 @@ jest.mock("../ExpoPhoneNumberHintModule", () => ({
   default: {},
 }));
 
-// The mocked native module is a single shared object; index.ts holds the same
-// reference, so assigning methods here controls what the JS wrappers call.
 const nativeModule = ExpoPhoneNumberHintModule as Record<string, unknown>;
 
 beforeEach(() => {
