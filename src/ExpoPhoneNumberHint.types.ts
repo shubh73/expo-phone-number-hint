@@ -25,3 +25,35 @@ export const PhoneNumberHintErrorCodes = {
  */
 export type PhoneNumberHintErrorCode =
   (typeof PhoneNumberHintErrorCodes)[keyof typeof PhoneNumberHintErrorCodes];
+
+/**
+ * A phone number selected from the system hint picker.
+ */
+export type PhoneNumberHint = {
+  /** The verbatim string returned by Google Play Services. Never modified. */
+  number: string;
+  /**
+   * The number in E.164 format (e.g. `"+14155551234"`), derived from `number`
+   * (interpreted against `regionCode` when it has no country code of its own),
+   * or `null` if the hint could not be validated as a real number.
+   */
+  e164: string | null;
+  /**
+   * The ISO 3166-1 alpha-2 region code of the active SIM used to help derive
+   * `e164`, or `null` if no SIM region was available.
+   *
+   * On dual-SIM devices this is the default subscription's region; the picker
+   * may return a number from the other SIM, whose region can differ when the
+   * SIMs are from different countries. Reading per-SIM regions would require
+   * the `READ_PHONE_STATE` permission, which this library does not request.
+   */
+  regionCode: string | null;
+};
+
+/**
+ * The result of `showPhoneNumberHintAsync()`. Check `canceled` to discriminate
+ * between a selection and a dismissed picker.
+ */
+export type PhoneNumberHintResult =
+  | { canceled: false; hint: PhoneNumberHint }
+  | { canceled: true; hint: null };
