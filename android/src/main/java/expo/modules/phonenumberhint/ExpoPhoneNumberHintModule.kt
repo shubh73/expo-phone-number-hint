@@ -1,7 +1,10 @@
 package expo.modules.phonenumberhint
 
 import android.app.Activity
+import android.content.Context
 import android.content.IntentSender
+import android.telephony.PhoneNumberUtils
+import android.telephony.TelephonyManager
 import android.util.Log
 import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -11,9 +14,22 @@ import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.records.Field
+import expo.modules.kotlin.records.Record
 
 private const val TAG = "ExpoPhoneNumberHint"
 private const val REQUEST_CODE = 8471
+
+internal class PhoneNumberHintRecord(
+  @Field val number: String = "",
+  @Field val e164: String? = null,
+  @Field val regionCode: String? = null,
+) : Record
+
+internal class PhoneNumberHintResultRecord(
+  @Field val canceled: Boolean = false,
+  @Field val hint: PhoneNumberHintRecord? = null,
+) : Record
 
 class ExpoPhoneNumberHintModule : Module() {
 
@@ -26,12 +42,39 @@ class ExpoPhoneNumberHintModule : Module() {
       .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
   }
 
+  // Prefer the SIM region; the network region is wrong while roaming.
+  private fun resolveSimRegion(context: Context): String? {
+    val telephonyManager =
+      context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager ?: return null
+    val simRegion = telephonyManager.simCountryIso
+    if (!simRegion.isNullOrBlank()) return simRegion.uppercase()
+    val networkRegion = telephonyManager.networkCountryIso
+    if (!networkRegion.isNullOrBlank()) return networkRegion.uppercase()
+    return null
+  }
+
+  private fun toE164OrNull(number: String, regionCode: String?): String? =
+    try {
+      PhoneNumberUtils.formatNumberToE164(number, regionCode)
+    } catch (e: Exception) {
+      Log.e(TAG, "formatNumberToE164 failed", e)
+      null
+    }
+
   override fun definition() = ModuleDefinition {
 
     Name("ExpoPhoneNumberHint")
 
     AsyncFunction("isAvailableAsync") {
       isPlayServicesAvailable()
+    }
+
+    Function("formatToE164") { number: String, regionCode: String? ->
+      toE164OrNull(number, regionCode?.uppercase())
+    }
+
+    AsyncFunction("getSimRegionCodeAsync") {
+      appContext.reactContext?.let { resolveSimRegion(it) }
     }
 
     AsyncFunction("showPhoneNumberHintAsync") { promise: Promise ->
@@ -81,15 +124,25 @@ class ExpoPhoneNumberHintModule : Module() {
       pendingPromise = null
 
       if (payload.resultCode != Activity.RESULT_OK) {
-        promise.resolve(null)
+        promise.resolve(PhoneNumberHintResultRecord(canceled = true))
         return@OnActivityResult
       }
 
       try {
         val context = appContext.reactContext ?: throw Exceptions.ReactContextLost()
-        val phoneNumber = Identity.getSignInClient(context)
+        val number = Identity.getSignInClient(context)
           .getPhoneNumberFromIntent(payload.data)
-        promise.resolve(phoneNumber)
+        val regionCode = resolveSimRegion(context)
+        promise.resolve(
+          PhoneNumberHintResultRecord(
+            canceled = false,
+            hint = PhoneNumberHintRecord(
+              number = number,
+              e164 = toE164OrNull(number, regionCode),
+              regionCode = regionCode,
+            ),
+          )
+        )
       } catch (e: Exception) {
         Log.e(TAG, "getPhoneNumberFromIntent failed", e)
         promise.reject(ExtractionFailedException(cause = e))

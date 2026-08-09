@@ -9,7 +9,9 @@ import {
   View,
 } from "react-native";
 import {
+  getSimRegionCodeAsync,
   isAvailableAsync,
+  type PhoneNumberHint,
   showPhoneNumberHintAsync,
 } from "expo-phone-number-hint";
 
@@ -18,18 +20,23 @@ const isAndroid = Platform.OS === "android";
 type Status =
   | { type: "idle" }
   | { type: "loading" }
-  | { type: "selected"; phoneNumber: string }
+  | { type: "selected"; hint: PhoneNumberHint }
   | { type: "dismissed" }
   | { type: "error"; code: string; message: string };
 
 export default function DemoScreen({
+  onShowNormalization,
   onShowValidation,
 }: {
+  onShowNormalization: () => void;
   onShowValidation: () => void;
 }) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState<Status>({ type: "idle" });
   const [available, setAvailable] = useState<boolean | null>(null);
+  const [simRegion, setSimRegion] = useState<string | null | undefined>(
+    undefined,
+  );
 
   const handleRequestPhoneNumber = async () => {
     setStatus({ type: "loading" });
@@ -37,9 +44,9 @@ export default function DemoScreen({
     try {
       const result = await showPhoneNumberHintAsync();
 
-      if (result) {
-        setPhoneNumber(result);
-        setStatus({ type: "selected", phoneNumber: result });
+      if (!result.canceled) {
+        setPhoneNumber(result.hint.e164 ?? result.hint.number);
+        setStatus({ type: "selected", hint: result.hint });
       } else {
         setStatus({ type: "dismissed" });
       }
@@ -49,8 +56,11 @@ export default function DemoScreen({
   };
 
   const handleCheckAvailability = async () => {
-    const result = await isAvailableAsync();
-    setAvailable(result);
+    setAvailable(await isAvailableAsync());
+  };
+
+  const handleGetSimRegion = async () => {
+    setSimRegion(await getSimRegionCodeAsync());
   };
 
   return (
@@ -100,8 +110,13 @@ export default function DemoScreen({
 
           {status.type === "selected" && (
             <View style={styles.statusCard}>
-              <Text style={styles.statusSuccess}>
-                Number selected: {status.phoneNumber}
+              <Text style={styles.statusSuccess}>Number selected</Text>
+              <Text style={styles.detailRow}>number: {status.hint.number}</Text>
+              <Text style={styles.detailRow}>
+                e164: {status.hint.e164 ?? "null"}
+              </Text>
+              <Text style={styles.detailRow}>
+                regionCode: {status.hint.regionCode ?? "null"}
               </Text>
             </View>
           )}
@@ -136,10 +151,24 @@ export default function DemoScreen({
               isAvailableAsync(): {String(available)}
             </Text>
           )}
+
+          <Pressable style={styles.secondaryButton} onPress={handleGetSimRegion}>
+            <Text style={styles.secondaryButtonText}>Get SIM region</Text>
+          </Pressable>
+
+          {simRegion !== undefined && (
+            <Text style={styles.availabilityText}>
+              getSimRegionCodeAsync(): {simRegion ?? "null"}
+            </Text>
+          )}
         </>
       )}
 
       <View style={styles.divider} />
+
+      <Pressable style={styles.linkButton} onPress={onShowNormalization}>
+        <Text style={styles.linkButtonText}>Open Normalization Playground</Text>
+      </Pressable>
 
       <Pressable style={styles.linkButton} onPress={onShowValidation}>
         <Text style={styles.linkButtonText}>Open Validation Matrix</Text>
@@ -218,11 +247,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0fdf4",
     borderRadius: 10,
     padding: 14,
+    gap: 4,
   },
   statusSuccess: {
     fontSize: 15,
     color: "#166534",
     fontWeight: "600",
+  },
+  detailRow: {
+    fontSize: 14,
+    color: "#374151",
+    fontVariant: ["tabular-nums"],
   },
   statusMuted: {
     fontSize: 14,

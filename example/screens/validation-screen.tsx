@@ -39,12 +39,12 @@ const SCENARIOS: Scenario[] = [
   {
     id: "standard",
     title: "Select number",
-    description: "Pick a number. Passes when E.164 string is returned.",
+    description: "Pick a number. Passes when a non-canceled result is returned.",
   },
   {
     id: "dismiss",
     title: "Dismiss picker",
-    description: "Dismiss without selecting. Passes when result is null.",
+    description: "Dismiss without selecting. Passes when the result is canceled.",
   },
   {
     id: "concurrency",
@@ -123,9 +123,11 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       log("info", "Showing picker...");
       try {
         const result = await showPhoneNumberHintAsync();
-        if (result) {
-          update("standard", "pass", result);
-          log("pass", `Selected: ${result}`);
+        if (!result.canceled) {
+          const { number, e164, regionCode } = result.hint;
+          const note = `number=${number}\ne164=${e164 ?? "null"}\nregionCode=${regionCode ?? "null"}`;
+          update("standard", "pass", note);
+          log("pass", `Selected: ${e164 ?? number} (region ${regionCode ?? "?"})`);
         } else {
           update("standard", "fail", "Picker dismissed (use Dismiss test)");
           log("fail", "Dismissed instead of selecting");
@@ -139,12 +141,12 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       log("info", "Showing picker (dismiss it)...");
       try {
         const result = await showPhoneNumberHintAsync();
-        if (result === null) {
-          update("dismiss", "pass", "Received null");
-          log("pass", "Dismissed → null");
+        if (result.canceled) {
+          update("dismiss", "pass", "Received canceled result");
+          log("pass", "Dismissed → canceled");
         } else {
-          update("dismiss", "fail", `Got number instead: ${result}`);
-          log("fail", `Expected null, got: ${result}`);
+          update("dismiss", "fail", `Got number instead: ${result.hint.number}`);
+          log("fail", `Expected canceled, got: ${result.hint.number}`);
         }
       } catch (e: any) {
         update("dismiss", "fail", `${e.code}: ${e.message}`);
@@ -164,16 +166,15 @@ export default function ValidationScreen({ onBack }: { onBack: () => void }) {
       }
 
       if (secondError?.code === PhoneNumberHintErrorCodes.ALREADY_IN_PROGRESS) {
-        const r1 = await first.catch((e: any) => ({
-          code: e.code,
-          message: e.message,
-        }));
-        const firstResult =
-          typeof r1 === "string"
-            ? `selected: ${r1}`
-            : r1 === null
-              ? "dismissed"
-              : `error: ${r1.code}`;
+        const r1 = await first.then(
+          (result) => ({ ok: true as const, result }),
+          (e: any) => ({ ok: false as const, code: e.code as string }),
+        );
+        const firstResult = !r1.ok
+          ? `error: ${r1.code}`
+          : r1.result.canceled
+            ? "dismissed"
+            : `selected: ${r1.result.hint.number}`;
         const note = `Second call rejected with ${PhoneNumberHintErrorCodes.ALREADY_IN_PROGRESS}. First call: ${firstResult}.`;
         update("concurrency", "pass", note);
         log("pass", note);

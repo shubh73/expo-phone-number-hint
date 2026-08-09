@@ -24,11 +24,13 @@ import {
 
 const isAvailable = await isAvailableAsync();
 if (isAvailable) {
-  const phoneNumber = await showPhoneNumberHintAsync();
+  const result = await showPhoneNumberHintAsync();
 
-  if (phoneNumber) {
+  if (!result.canceled) {
     // user selected a number
-    console.log(phoneNumber); // "+919876543210"
+    console.log(result.hint.number); // as returned by Play Services
+    console.log(result.hint.e164); // "+919876543210" (or null if not derivable)
+    console.log(result.hint.regionCode); // "IN" (or null)
   } else {
     // user dismissed the picker
   }
@@ -48,14 +50,45 @@ Check whether the Phone Number Hint API can be used on this device. Never throws
 ### `showPhoneNumberHintAsync()`
 
 ```typescript
-function showPhoneNumberHintAsync(): Promise<string | null>
+function showPhoneNumberHintAsync(): Promise<PhoneNumberHintResult>
 ```
 
-Show the system phone number picker.
+Shows the system phone number picker. Resolves to a result object:
 
-Returns the selected phone number in E.164 format (e.g. `"+14155551234"`), or `null` if the user dismissed the picker.
+```typescript
+type PhoneNumberHintResult =
+  | { canceled: false; hint: PhoneNumberHint }
+  | { canceled: true; hint: null };
+
+type PhoneNumberHint = {
+  /** The verbatim string returned by Google Play Services. */
+  number: string;
+  /** E.164 (e.g. "+14155551234"), or null if not a valid phone number. */
+  e164: string | null;
+  /** ISO 3166-1 alpha-2 region of the active SIM, or null. */
+  regionCode: string | null;
+};
+```
+
+Google Play Services returns the number as stored on the device. `e164` is derived from `number` and `regionCode` as a best-effort convenience, validate it before use.
 
 Throws an error with a `code` property on failure. See [Handling errors](#handling-errors) below.
+
+### `formatToE164(number, regionCode?)`
+
+```typescript
+function formatToE164(number: string, regionCode?: string | null): string | null
+```
+
+Formats a phone number as E.164, validating it against the region's numbering rules. `regionCode` is an ISO 3166-1 alpha-2 code (e.g. `"US"`) used to interpret `number` when it does not include a country code; it can be omitted when `number` starts with `+`. Returns `null` if the number is not valid. Uses the `libphonenumber` implementation bundled with the Android OS, so it adds nothing to your app's bundle. On iOS and web, this returns `null`.
+
+### `getSimRegionCodeAsync()`
+
+```typescript
+function getSimRegionCodeAsync(): Promise<string | null>
+```
+
+Gets the ISO 3166-1 alpha-2 region code of the active SIM (e.g. `"US"`), falling back to the current network's region. Returns `null` if no region is available. If the device has dual SIM cards, only the region for the default subscription is returned — reading per-SIM regions would require the `READ_PHONE_STATE` permission, which this library does not request. On iOS and web, this returns `null`.
 
 ## Handling errors
 
