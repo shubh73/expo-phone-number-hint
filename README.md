@@ -82,14 +82,6 @@ function formatToE164(number: string, regionCode?: string | null): string | null
 
 Formats a phone number as E.164, validating it against the region's numbering rules. `regionCode` is an ISO 3166-1 alpha-2 code (e.g. `"US"`) used to interpret `number` when it does not include a country code; it can be omitted when `number` starts with `+`. Returns `null` if the number is not valid. Uses the `libphonenumber` implementation bundled with the Android OS, so it adds nothing to your app's bundle. On iOS and web, this returns `null`.
 
-### `getSimRegionCodeAsync()`
-
-```typescript
-function getSimRegionCodeAsync(): Promise<string | null>
-```
-
-Gets the ISO 3166-1 alpha-2 region code of the active SIM (e.g. `"US"`), falling back to the current network's region. Returns `null` if no region is available. If the device has dual SIM cards, only the region for the default subscription is returned — reading per-SIM regions would require the `READ_PHONE_STATE` permission, which this library does not request. On iOS and web, this returns `null`.
-
 ## Handling errors
 
 All known codes are exported as `PhoneNumberHintErrorCodes`.

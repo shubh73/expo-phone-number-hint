@@ -73,10 +73,6 @@ class ExpoPhoneNumberHintModule : Module() {
       toE164OrNull(number, regionCode?.uppercase())
     }
 
-    AsyncFunction("getSimRegionCodeAsync") {
-      appContext.reactContext?.let { resolveSimRegion(it) }
-    }
-
     AsyncFunction("showPhoneNumberHintAsync") { promise: Promise ->
       val activity = appContext.currentActivity
       if (activity == null || activity.isFinishing || activity.isDestroyed) {

@@ -81,20 +81,3 @@ export function formatToE164(
 
   return ExpoPhoneNumberHintModule.formatToE164(number, regionCode || null);
 }
-
-/**
- * Gets the ISO 3166-1 alpha-2 region code of the active SIM, falling back to
- * the current network's region. If the device has dual SIM cards, only the
- * region for the default subscription is returned.
- *
- * On iOS and web, this returns `null`.
- *
- * @returns A promise that fulfills with the region code (e.g. `"US"`), or
- *          `null` if no SIM or network region is available.
- * @platform android
- */
-export async function getSimRegionCodeAsync(): Promise<string | null> {
-  if (!ExpoPhoneNumberHintModule.getSimRegionCodeAsync) return null;
-
-  return await ExpoPhoneNumberHintModule.getSimRegionCodeAsync();
-}

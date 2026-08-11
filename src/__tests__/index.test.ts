@@ -3,7 +3,6 @@ import { UnavailabilityError } from "expo-modules-core";
 import ExpoPhoneNumberHintModule from "../ExpoPhoneNumberHintModule";
 import {
   formatToE164,
-  getSimRegionCodeAsync,
   isAvailableAsync,
   showPhoneNumberHintAsync,
 } from "../index";
@@ -110,15 +109,4 @@ describe("formatToE164", () => {
       );
     },
   );
-});
-
-describe("getSimRegionCodeAsync", () => {
-  it("returns null when the native module is unavailable", async () => {
-    await expect(getSimRegionCodeAsync()).resolves.toBeNull();
-  });
-
-  it("delegates to the native module", async () => {
-    nativeModule.getSimRegionCodeAsync = jest.fn().mockResolvedValue("US");
-    await expect(getSimRegionCodeAsync()).resolves.toBe("US");
-  });
 });
