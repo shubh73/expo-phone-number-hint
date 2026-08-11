@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import {
-  getSimRegionCodeAsync,
   isAvailableAsync,
   type PhoneNumberHint,
   showPhoneNumberHintAsync,
@@ -34,9 +33,6 @@ export default function DemoScreen({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [status, setStatus] = useState<Status>({ type: "idle" });
   const [available, setAvailable] = useState<boolean | null>(null);
-  const [simRegion, setSimRegion] = useState<string | null | undefined>(
-    undefined,
-  );
 
   const handleRequestPhoneNumber = async () => {
     setStatus({ type: "loading" });
@@ -57,10 +53,6 @@ export default function DemoScreen({
 
   const handleCheckAvailability = async () => {
     setAvailable(await isAvailableAsync());
-  };
-
-  const handleGetSimRegion = async () => {
-    setSimRegion(await getSimRegionCodeAsync());
   };
 
   return (
@@ -149,16 +141,6 @@ export default function DemoScreen({
           {available !== null && (
             <Text style={styles.availabilityText}>
               isAvailableAsync(): {String(available)}
-            </Text>
-          )}
-
-          <Pressable style={styles.secondaryButton} onPress={handleGetSimRegion}>
-            <Text style={styles.secondaryButtonText}>Get SIM region</Text>
-          </Pressable>
-
-          {simRegion !== undefined && (
-            <Text style={styles.availabilityText}>
-              getSimRegionCodeAsync(): {simRegion ?? "null"}
             </Text>
           )}
         </>
