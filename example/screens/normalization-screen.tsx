@@ -8,10 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import {
-  formatToE164,
-  getSimRegionCodeAsync,
-} from "expo-phone-number-hint";
+import { formatToE164 } from "expo-phone-number-hint";
 
 const isAndroid = Platform.OS === "android";
 
@@ -39,18 +36,11 @@ export default function NormalizationScreen({
   const [number, setNumber] = useState("9705783855");
   const [regionCode, setRegionCode] = useState("IN");
   const [e164, setE164] = useState<string | null | undefined>(undefined);
-  const [simRegion, setSimRegion] = useState<string | null | undefined>(
-    undefined,
-  );
 
   const format = (nextNumber: string, nextRegion: string) => {
     setNumber(nextNumber);
     setRegionCode(nextRegion);
     setE164(formatToE164(nextNumber, nextRegion.trim() || undefined));
-  };
-
-  const handleGetSimRegion = async () => {
-    setSimRegion(await getSimRegionCodeAsync());
   };
 
   return (
@@ -65,7 +55,7 @@ export default function NormalizationScreen({
       {!isAndroid ? (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            formatToE164 and getSimRegionCodeAsync are Android-only.
+            formatToE164 is Android-only.
           </Text>
         </View>
       ) : (
@@ -124,17 +114,6 @@ export default function NormalizationScreen({
             ))}
           </View>
 
-          <View style={styles.divider} />
-
-          <Pressable style={styles.secondaryButton} onPress={handleGetSimRegion}>
-            <Text style={styles.secondaryButtonText}>Get SIM region</Text>
-          </Pressable>
-
-          {simRegion !== undefined && (
-            <Text style={styles.availabilityText}>
-              getSimRegionCodeAsync(): {simRegion ?? "null"}
-            </Text>
-          )}
         </>
       )}
     </ScrollView>
@@ -250,27 +229,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#374151",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#e5e7eb",
-    marginVertical: 4,
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  availabilityText: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
   },
 });
